@@ -35,7 +35,8 @@ interface Studio {
   amenities: string[];
 }
 
-const MyListingsPage = async () => {
+// Moved your original page logic into this component
+const MyListingsContent = async () => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -183,6 +184,21 @@ const MyListingsPage = async () => {
         )}
       </div>
     </main>
+  );
+};
+
+// Page component with Suspense boundary
+const MyListingsPage = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <p className="text-muted-foreground">Loading your listings...</p>
+        </div>
+      }
+    >
+      <MyListingsContent />
+    </Suspense>
   );
 };
 
