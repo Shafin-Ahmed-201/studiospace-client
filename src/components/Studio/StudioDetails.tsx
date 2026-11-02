@@ -11,6 +11,7 @@ import {
   CalendarDays,
   CreditCard,
 } from "lucide-react";
+import BookStudioButton from "../BookStudioButton";
 
 interface Studio {
   _id: string;
@@ -216,13 +217,7 @@ export default function StudioDetails({
                 </p>
               </div>
 
-              <Link
-                href={`/booking/${studio._id}`}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C5F45B] px-5 py-4 font-semibold text-black transition hover:bg-white hover:border border-[#C5F45B]"
-              >
-                <CalendarDays size={19} />
-                Book This Studio
-              </Link>
+              <BookStudioButton studio={studio}></BookStudioButton>
 
               <p className="mt-4 text-center text-xs text-slate-400">
                 <CreditCard size={14} className="mr-1 inline" />
