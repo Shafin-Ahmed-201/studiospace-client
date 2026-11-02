@@ -218,7 +218,7 @@ export default function StudioDetails({
 
               <Link
                 href={`/booking/${studio._id}`}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C5F45B] px-5 py-4 font-semibold text-black transition hover:bg-white"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#C5F45B] px-5 py-4 font-semibold text-black transition hover:bg-white hover:border border-[#C5F45B]"
               >
                 <CalendarDays size={19} />
                 Book This Studio

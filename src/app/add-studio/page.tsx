@@ -38,7 +38,7 @@ export default function AddStudioForm() {
   const [loading, setLoading] = useState(false);
   const [amenityInput, setAmenityInput] = useState("");
   const [amenities, setAmenities] = useState<string[]>([]);
-
+const {data:session}=useSession()
   const [formData, setFormData] = useState({
     title: "",
     category: "",
@@ -48,7 +48,7 @@ export default function AddStudioForm() {
     location: "",
     address: "",
     imageUrl: "",
-    overview: "",
+    overview: ""
   });
 
   const handleChange = (
@@ -83,7 +83,6 @@ export default function AddStudioForm() {
       previous.filter((item) => item !== amenity)
     );
   };
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -100,13 +99,15 @@ export default function AddStudioForm() {
     setLoading(true);
 
     try {
-      const response = await fetch(`${process.env.API_URL}/studios`, {
+      const response = await fetch(`http://localhost:5000/studios`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
+        userName:session?.user.name,
+        userEmail:session?.user.email,
           hourlyRate: Number(formData.hourlyRate),
           securityDeposit: Number(formData.securityDeposit),
           maxCapacity: Number(formData.maxCapacity),
@@ -133,7 +134,7 @@ export default function AddStudioForm() {
       setLoading(false);
     }
   };
- const {data:session}=useSession()
+ 
   return (
     <section className="min-h-screen bg-[#F8F9F5] px-4 py-12 md:px-8">
       <div className="mx-auto max-w-4xl">
@@ -387,17 +388,34 @@ export default function AddStudioForm() {
               </CardDescription>
             </CardHeader>
 
-            <CardContent className="grid gap-5 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Host Name</label>
-                <Input value={session?.user?.name ??''} readOnly />
-              </div>
+           <CardContent className="grid gap-5 sm:grid-cols-2">
+  <div className="space-y-2">
+    <label htmlFor="userName" className="text-sm font-medium">
+      Host Name
+    </label>
+    <Input
+      id="userName"
+      name="userName"
+      value={session?.user?.name ?? ""}
+      readOnly
+      className="bg-muted"
+    />
+  </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Host Email</label>
-                <Input value={session?.user?.email ??''} readOnly />
-              </div>
-            </CardContent>
+  <div className="space-y-2">
+    <label htmlFor="userEmail" className="text-sm font-medium">
+      Host Email
+    </label>
+    <Input
+      id="userEmail"
+      name="userEmail"
+      type="email"
+      value={session?.user?.email ?? ""}
+      readOnly
+      className="bg-muted"
+    />
+  </div>
+</CardContent>
           </Card>
 
           {/* Submit */}

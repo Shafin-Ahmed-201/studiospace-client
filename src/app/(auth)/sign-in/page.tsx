@@ -59,15 +59,14 @@ const LoginPage = () => {
             password: formData.password,
             rememberMe,
         });
+         router.replace("/");
+        router.refresh();
         setLoading(false);
 
         if (signInError) {
             setError(signInError.message ?? "Invalid email or password. Please try again.");
             return;
         }
-
-        router.push("/");
-        router.refresh();
     };
 
     const inputClasses = "h-11 rounded-md pl-9";
