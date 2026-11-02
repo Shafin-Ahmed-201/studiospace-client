@@ -51,17 +51,12 @@ const BookStudioButton = ({ studio }: BookStudioButtonProps) => {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [today, setToday] = useState("");
+  const [today] = useState(getToday);
   const [bookingDate, setBookingDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [guests, setGuests] = useState("1");
   const [note, setNote] = useState("");
-
-  // Set today's date after the component mounts.
-  useEffect(() => {
-    setToday(getToday());
-  }, []);
 
   // Calculate booking duration.
   const calculateDuration = () => {

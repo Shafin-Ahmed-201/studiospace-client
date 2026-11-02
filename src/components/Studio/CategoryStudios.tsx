@@ -120,7 +120,7 @@ export default function CategoryStudios({
 
                   <Link
                     href={`/studios/${studio._id}`}
-                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 font-semibold text-white transition hover:bg-orange-500"
+                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#C5F45B] px-5 py-3 font-semibold text-black transition hover:bg-white hover:border border-[#C5F45B]"
                   >
                     View Details
                     <ArrowRight size={17} />
