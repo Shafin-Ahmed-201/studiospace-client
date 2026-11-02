@@ -143,7 +143,7 @@ async function StudiosContent() {
 
                 <Link
                   href={`/studios/${studio._id}`}
-                  className="block w-full rounded-xl bg-black px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-gray-800"
+                  className="block w-full rounded-xl bg-[#C5F45B] px-5 py-3 text-center text-sm font-semibold text-black transition hover:bg-white hover:border border-[#C5F45B]"
                 >
                   View Details
                 </Link>
