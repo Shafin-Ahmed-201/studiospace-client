@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   Aperture,
@@ -45,8 +45,14 @@ const navLinks = [
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-
-  const { data: session, isPending } = authClient.useSession();
+  const {
+  data: session,
+  isPending,
+  refetch,
+} = authClient.useSession();
+  useEffect(() => {
+    refetch();
+  }, [pathname, refetch]);
 
   const [mobileOpen, setMobileOpen] = useState(false);
 

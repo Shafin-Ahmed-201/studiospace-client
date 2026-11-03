@@ -8,7 +8,6 @@ import {
   ShieldCheck,
   CheckCircle2,
   ArrowLeft,
-  CalendarDays,
   CreditCard,
 } from "lucide-react";
 import BookStudioButton from "../BookStudioButton";
