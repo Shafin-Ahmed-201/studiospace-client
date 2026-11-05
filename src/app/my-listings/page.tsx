@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Suspense } from "react";
 import MyListCard from "@/components/MyListCard";
+import { redirect } from "next/navigation";
 
 interface Studio {
   _id: string;
@@ -31,9 +32,13 @@ interface Studio {
 
 // Moved your original page logic into this component
 const MyListingsContent = async () => {
-  const jwtToken= await auth.api.getToken({
-        headers:await headers()
-      })
+  const jwtToken = await auth.api.getToken({
+  headers: await headers(),
+});
+
+if (!jwtToken?.token) {
+  redirect("/sign-in");
+}
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -177,7 +182,7 @@ const MyListingsContent = async () => {
           <div>
             {studios.map((studio) => (
               <Suspense key={studio._id} fallback={<p>Loading...</p>}>
-                <MyListCard studio={studio} />
+                <MyListCard token={jwtToken.token} studio={studio} />
               </Suspense>
             ))}
           </div>

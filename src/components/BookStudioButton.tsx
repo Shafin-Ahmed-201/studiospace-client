@@ -17,7 +17,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 
 interface Studio {
@@ -46,7 +45,7 @@ const getToday = () => {
 
 const BookStudioButton = ({ studio }: BookStudioButtonProps) => {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, isPending } = useSession();
 
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -58,7 +57,7 @@ const BookStudioButton = ({ studio }: BookStudioButtonProps) => {
   const [guests, setGuests] = useState("1");
   const [note, setNote] = useState("");
 
-  // Calculate booking duration.
+  // Calculate booking duration
   const calculateDuration = () => {
     if (!startTime || !endTime) return 0;
 
@@ -66,8 +65,7 @@ const BookStudioButton = ({ studio }: BookStudioButtonProps) => {
     const [endHour, endMinute] = endTime.split(":").map(Number);
 
     return (
-      (endHour * 60 +
-        endMinute -
+      (endHour * 60 + endMinute -
         (startHour * 60 + startMinute)) / 60
     );
   };
@@ -77,19 +75,41 @@ const BookStudioButton = ({ studio }: BookStudioButtonProps) => {
   const totalPrice =
     duration > 0 ? duration * studio.hourlyRate : 0;
 
-  // Handle booking submission.
+  // Open booking dialog
+  const handleOpenBooking = () => {
+    if (isPending) return;
+
+    if (!session?.user) {
+      router.push(
+        `/sign-in?callbackURL=${encodeURIComponent(window.location.pathname)}`
+      );
+      return;
+    }
+
+    setOpen(true);
+  };
+
+  // Submit booking
   const handleBooking = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
+    if (isPending || loading) return;
+
     if (!session?.user?.email) {
-      toast.error("Please sign in before booking a studio.");
+      toast.error("Please sign in again.");
+      router.push("/sign-in");
       return;
     }
 
     if (!bookingDate || !startTime || !endTime) {
       toast.error("Please select your booking date and time.");
+      return;
+    }
+
+    if (bookingDate < today) {
+      toast.error("Please select today or a future date.");
       return;
     }
 
@@ -99,10 +119,19 @@ const BookStudioButton = ({ studio }: BookStudioButtonProps) => {
     }
 
     if (
+      bookingDate === today &&
+      new Date(`${bookingDate}T${startTime}:00`) <= new Date()
+    ) {
+      toast.error("Please select a future booking time.");
+      return;
+    }
+
+    if (
+      !Number.isInteger(Number(guests)) ||
       Number(guests) < 1 ||
       Number(guests) > studio.maxCapacity
     ) {
-      toast.error(`Guest limit is ${studio.maxCapacity}.`);
+      toast.error(`Guest limit is 1 to ${studio.maxCapacity}.`);
       return;
     }
 
@@ -131,19 +160,18 @@ const BookStudioButton = ({ studio }: BookStudioButtonProps) => {
 
       const result = await response.json();
 
-    if (!response.ok) {
-  toast.error(result.message || "Booking failed.");
-  return;
-}
+      if (!response.ok) {
+        throw new Error(result.message || "Booking failed.");
+      }
 
-      toast.success(
-        "Your studio booking is confirmed!"
-      );
+      toast.success("Your studio booking is confirmed!");
 
       setOpen(false);
       router.push("/my-bookings");
       router.refresh();
     } catch (error) {
+      console.error("Booking error:", error);
+
       toast.error(
         error instanceof Error
           ? error.message
@@ -155,168 +183,140 @@ const BookStudioButton = ({ studio }: BookStudioButtonProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {/* Fixed: DialogTrigger already renders a button */}
-      <DialogTrigger
-  disabled={ !session?.user}
-  className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#C5F45B] bg-[#C5F45B] px-5 py-4 font-semibold text-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+    <>
+      <Button
+        type="button"
+        onClick={handleOpenBooking}
+        disabled={isPending || loading}
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#C5F45B] bg-[#C5F45B] px-5 py-4 font-semibold text-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <CalendarDays size={19} />
+        {isPending ? "Checking Login..." : "Book This Studio"}
+      </Button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-[#85b90a]">
+              Book This Studio
+            </DialogTitle>
+
+            <DialogDescription>
+              Complete the information below to reserve {studio.title}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleBooking} className="space-y-5">
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <CalendarDays className="h-4 w-4" />
+                Booking Date
+              </label>
+
+              <Input
+                type="date"
+                min={today}
+                value={bookingDate}
+                onChange={(e) => setBookingDate(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Start Time</label>
+
+                <Input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">End Time</label>
+
+                <Input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 text-sm font-medium">
+                <Users className="h-4 w-4" />
+                Number of Guests
+              </label>
+
+              <Input
+                type="number"
+                min="1"
+                max={studio.maxCapacity}
+                step="1"
+                value={guests}
+                onChange={(e) => setGuests(e.target.value)}
+                required
+              />
+
+              <p className="text-xs text-muted-foreground">
+                Maximum capacity: {studio.maxCapacity} people
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Booking Note (Optional)
+              </label>
+
+              <Textarea
+                placeholder="Tell the host about your booking..."
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-3 rounded-xl bg-gray-50 p-4">
+              <div className="flex justify-between text-sm">
+                <span>Hourly Rate</span>
+                <span>৳{studio.hourlyRate.toLocaleString()}</span>
+              </div>
+
+              <div className="flex justify-between text-sm">
+                <span>Duration</span>
+                <span>{duration > 0 ? `${duration} hours` : "—"}</span>
+              </div>
+
+              <div className="flex justify-between border-t pt-3 font-semibold">
+                <span>Estimated Booking Price</span>
+                <span>৳{totalPrice.toLocaleString()}</span>
+              </div>
+
+              <div className="flex justify-between text-sm">
+                <span>Security Deposit (separate)</span>
+                <span>৳{studio.securityDeposit.toLocaleString()}</span>
+              </div>
+            </div>
+
+            <Button
+  type="submit"
+  className="w-full cursor-pointer border border-[#C5F45B] bg-[#C5F45B] text-black hover:bg-white"
+  disabled={loading || isPending || !session?.user}
 >
-  <CalendarDays size={19} />
-  {!session?.user ? "Checking Login..." : "Book This Studio"}
-</DialogTrigger>
-
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="text-2xl text-[#85b90a]">
-            Book This Studio
-          </DialogTitle>
-
-          <DialogDescription>
-            Complete the information below to reserve{" "}
-            {studio.title}.
-          </DialogDescription>
-        </DialogHeader>
-
-        <form
-          onSubmit={handleBooking}
-          className="space-y-5"
-        >
-          {/* Booking date */}
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm font-medium">
-              <CalendarDays className="h-4 w-4" />
-              Booking Date
-            </label>
-
-            <Input
-              type="date"
-              min={today}
-              value={bookingDate}
-              onChange={(e) =>
-                setBookingDate(e.target.value)
-              }
-              required
-            />
-          </div>
-
-          {/* Booking time */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                Start Time
-              </label>
-
-              <Input
-                type="time"
-                value={startTime}
-                onChange={(e) =>
-                  setStartTime(e.target.value)
-                }
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">
-                End Time
-              </label>
-
-              <Input
-                type="time"
-                value={endTime}
-                onChange={(e) =>
-                  setEndTime(e.target.value)
-                }
-                required
-              />
-            </div>
-          </div>
-
-          {/* Guests */}
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 text-sm font-medium">
-              <Users className="h-4 w-4" />
-              Number of Guests
-            </label>
-
-            <Input
-              type="number"
-              min="1"
-              max={studio.maxCapacity}
-              value={guests}
-              onChange={(e) =>
-                setGuests(e.target.value)
-              }
-              required
-            />
-
-            <p className="text-xs text-muted-foreground">
-              Maximum capacity: {studio.maxCapacity} people
-            </p>
-          </div>
-
-          {/* Booking note */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              Booking Note (Optional)
-            </label>
-
-            <Textarea
-              placeholder="Tell the host about your booking..."
-              value={note}
-              onChange={(e) =>
-                setNote(e.target.value)
-              }
-              rows={3}
-            />
-          </div>
-
-          {/* Price summary */}
-          <div className="space-y-3 rounded-xl bg-gray-50 p-4">
-            <div className="flex justify-between text-sm">
-              <span>Hourly Rate</span>
-              <span>
-                ৳{studio.hourlyRate.toLocaleString()}
-              </span>
-            </div>
-
-            <div className="flex justify-between text-sm">
-              <span>Duration</span>
-              <span>
-                {duration > 0
-                  ? `${duration} hours`
-                  : "—"}
-              </span>
-            </div>
-
-            <div className="flex justify-between border-t pt-3 font-semibold">
-              <span>Estimated Booking Price</span>
-              <span>
-                ৳{totalPrice.toLocaleString()}
-              </span>
-            </div>
-
-            <div className="flex justify-between text-sm">
-              <span>Security Deposit (separate)</span>
-              <span>
-                ৳{studio.securityDeposit.toLocaleString()}
-              </span>
-            </div>
-          </div>
-
-          {/* Confirm booking */}
-          <Button
-            type="submit"
-            className="w-full cursor-pointer bg-[#C5F45B] text-black hover:bg-white hover:border border-[#C5F45B]"
-            disabled={loading}
-          >
-            {loading
-              ? "Confirming Booking..."
-              : "Confirm Booking"}
-          </Button>
-        </form>
-      </DialogContent>
-    </Dialog>
+  {loading
+    ? "Confirming Booking..."
+    : !session?.user
+      ? "Please Sign In to Book"
+      : "Confirm Booking"}
+</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

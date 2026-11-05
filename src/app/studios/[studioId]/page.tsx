@@ -1,16 +1,16 @@
 
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+
 import StudioDetails from "@/components/Studio/StudioDetails";
 
-
-
-
-
 async function getStudio(studioId: string) {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/studios/${studioId}`, {
-    cache: "no-store",
-  });
+  const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/studios/${studioId}`,
+    {
+      cache: "no-store",
+    }
+  );
 
   if (response.status === 404) {
     return null;
@@ -29,14 +29,15 @@ async function StudioDetailsContent({
 }: {
   params: Promise<{ studioId: string }>;
 }) {
-  // Access params inside Suspense
   const { studioId } = await params;
 
-  const studio = await getStudio(studioId);
+  const result = await getStudio(studioId);
 
-  if (!studio) {
+  if (!result) {
     notFound();
   }
+
+  const studio = result.studio ?? result;
 
   return <StudioDetails studio={studio} />;
 }

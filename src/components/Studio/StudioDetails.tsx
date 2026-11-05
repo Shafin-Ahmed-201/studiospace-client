@@ -26,11 +26,12 @@ interface Studio {
   amenities: string[];
 }
 
-export default function StudioDetails({
+export default async function StudioDetails({
   studio,
 }: {
   studio: Studio;
 }) {
+
   return (
     <main className="min-h-screen bg-slate-50 pb-20">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -216,7 +217,7 @@ export default function StudioDetails({
                 </p>
               </div>
 
-              <BookStudioButton studio={studio}></BookStudioButton>
+              <BookStudioButton  studio={studio}></BookStudioButton>
 
               <p className="mt-4 text-center text-xs text-slate-400">
                 <CreditCard size={14} className="mr-1 inline" />
