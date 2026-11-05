@@ -5,11 +5,7 @@ import { jwt } from "better-auth/plugins";
 
 
 
-const mongoUrl = process.env.MONGODB_URL;
-if (!mongoUrl) {
-  throw new Error("MONGODB_URL is not set");
-}
-const client = new MongoClient(mongoUrl);
+const client = new MongoClient(process.env.MONGODB_URL!);
 const db = client.db('studiospaceDB');
 
 export const auth = betterAuth({
