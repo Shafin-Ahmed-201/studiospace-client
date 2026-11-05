@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { CalendarDays, Loader2 } from "lucide-react";
@@ -28,6 +29,9 @@ interface Booking {
 }
 
 async function MyBookingsContent() {
+   const jwtToken= await auth.api.getToken({
+        headers:await headers()
+      })
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -46,9 +50,12 @@ async function MyBookingsContent() {
   }
 
   const response = await fetch(
-    `http://localhost:5000/my-bookings/${encodeURIComponent(email)}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/my-bookings/${encodeURIComponent(email)}`,
     {
       cache: "no-store",
+      headers: {
+        authorization: `Bearer ${jwtToken?.token}`,
+      },
     }
   );
 
@@ -61,7 +68,9 @@ async function MyBookingsContent() {
   const activeBookings = bookings.filter(
     (booking) => booking.status === "confirmed"
   ).length;
-
+if (!jwtToken?.token) {
+  redirect("/sign-in");
+}
   return (
     <main className="min-h-screen bg-gray-50/70">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -128,6 +137,7 @@ async function MyBookingsContent() {
               <MyBookingCard
                 key={booking._id}
                 booking={booking}
+                token={jwtToken.token}
               />
             ))}
           </div>

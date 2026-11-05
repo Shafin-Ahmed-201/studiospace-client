@@ -5,8 +5,10 @@ import StudioDetails from "@/components/Studio/StudioDetails";
 
 
 
+
+
 async function getStudio(studioId: string) {
-  const response = await fetch(`${process.env.API_URL}/studios/${studioId}`, {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/studios/${studioId}`, {
     cache: "no-store",
   });
 

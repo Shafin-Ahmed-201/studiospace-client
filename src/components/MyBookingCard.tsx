@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -15,6 +16,17 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Booking {
   _id: string;
@@ -36,12 +48,11 @@ interface Booking {
 
 interface MyBookingCardProps {
   booking: Booking;
+  token: string;
 }
 
 const canCancelBooking = (booking: Booking) => {
   if (booking.status !== "confirmed") return false;
-
-  const now = new Date();
 
   const [year, month, day] = booking.bookingDate.split("-").map(Number);
   const [hours, minutes] = booking.startTime.split(":").map(Number);
@@ -54,23 +65,18 @@ const canCancelBooking = (booking: Booking) => {
     minutes
   );
 
-  return bookingStart > now;
+  return bookingStart > new Date();
 };
 
-const MyBookingCard = ({ booking }: MyBookingCardProps) => {
+const MyBookingCard = ({ booking, token }: MyBookingCardProps) => {
   const router = useRouter();
   const { data: session } = useSession();
 
   const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const handleCancelBooking = async () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to cancel this booking?"
-    );
-
-    if (!confirmed) return;
-
-    if (!session?.user?.email) {
+    if (!session?.user?.email || !token) {
       toast.error("Please sign in again.");
       return;
     }
@@ -79,11 +85,12 @@ const MyBookingCard = ({ booking }: MyBookingCardProps) => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/bookings/${booking._id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/bookings/${booking._id}`,
         {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             userEmail: session.user.email,
@@ -99,6 +106,7 @@ const MyBookingCard = ({ booking }: MyBookingCardProps) => {
 
       toast.success("Booking cancelled successfully!");
 
+      setOpen(false);
       router.refresh();
     } catch (error) {
       toast.error(
@@ -159,9 +167,7 @@ const MyBookingCard = ({ booking }: MyBookingCardProps) => {
                 <p className="text-xs text-muted-foreground">
                   Booking Date
                 </p>
-                <p className="font-medium">
-                  {booking.bookingDate}
-                </p>
+                <p className="font-medium">{booking.bookingDate}</p>
               </div>
             </div>
 
@@ -183,9 +189,7 @@ const MyBookingCard = ({ booking }: MyBookingCardProps) => {
                 <p className="text-xs text-muted-foreground">
                   Guests
                 </p>
-                <p className="font-medium">
-                  {booking.guests} People
-                </p>
+                <p className="font-medium">{booking.guests} People</p>
               </div>
             </div>
 
@@ -218,15 +222,50 @@ const MyBookingCard = ({ booking }: MyBookingCardProps) => {
             </div>
 
             {showCancelButton && (
-              <Button
-                variant="destructive"
-                onClick={handleCancelBooking}
-                disabled={loading}
-              >
-                <XCircle className="mr-2 h-4 w-4" />
-                {loading ? "Cancelling..." : "Cancel Booking"}
-              </Button>
-            )}
+  <>
+    <Button
+      variant="destructive"
+      disabled={loading}
+      onClick={() => setOpen(true)}
+    >
+      <XCircle className="mr-2 h-4 w-4" />
+      Cancel Booking
+    </Button>
+
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            Cancel this booking?
+          </AlertDialogTitle>
+
+          <AlertDialogDescription>
+            Are you sure you want to cancel your booking for{" "}
+            <strong>{booking.studioTitle}</strong>?
+            This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={loading}>
+            Keep Booking
+          </AlertDialogCancel>
+
+          <AlertDialogAction
+            onClick={(event) => {
+              event.preventDefault();
+              handleCancelBooking();
+            }}
+            disabled={loading}
+            className="bg-destructive text-white hover:bg-destructive/90"
+          >
+            {loading ? "Cancelling..." : "Yes, Cancel Booking"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
+)}
           </div>
         </div>
       </div>

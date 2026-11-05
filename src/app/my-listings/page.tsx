@@ -1,20 +1,14 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import Image from "next/image";
 import Link from "next/link";
 import {
-  MapPin,
   Users,
   Wallet,
   Building2,
-  Pencil,
-  Trash2,
-  Eye,
   Plus,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Suspense } from "react";
 import MyListCard from "@/components/MyListCard";
@@ -37,6 +31,9 @@ interface Studio {
 
 // Moved your original page logic into this component
 const MyListingsContent = async () => {
+  const jwtToken= await auth.api.getToken({
+        headers:await headers()
+      })
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -44,10 +41,13 @@ const MyListingsContent = async () => {
   const email = session?.user?.email;
 
   const res = await fetch(
-    `http://localhost:5000/my-listings/${encodeURIComponent(email ?? "")}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/my-listings/${encodeURIComponent(email ?? "")}`,
     {
       cache: "no-store",
-    },
+      headers: {
+        authorization: `Bearer ${jwtToken?.token}`,
+      },
+    }
   );
 
   if (!res.ok) {

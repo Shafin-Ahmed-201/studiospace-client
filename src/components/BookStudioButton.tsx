@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { toast } from "sonner";
@@ -110,7 +110,7 @@ const BookStudioButton = ({ studio }: BookStudioButtonProps) => {
 
     try {
       const response = await fetch(
-        "http://localhost:5000/bookings",
+        `${process.env.NEXT_PUBLIC_API_URL}/bookings`,
         {
           method: "POST",
           headers: {
@@ -157,14 +157,17 @@ const BookStudioButton = ({ studio }: BookStudioButtonProps) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {/* Fixed: DialogTrigger already renders a button */}
-      <DialogTrigger className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#C5F45B] bg-[#C5F45B] px-5 py-4 font-semibold text-black transition hover:bg-white">
-        <CalendarDays size={19} />
-        Book This Studio
-      </DialogTrigger>
+      <DialogTrigger
+  disabled={ !session?.user}
+  className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#C5F45B] bg-[#C5F45B] px-5 py-4 font-semibold text-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+>
+  <CalendarDays size={19} />
+  {!session?.user ? "Checking Login..." : "Book This Studio"}
+</DialogTrigger>
 
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-2xl">
+          <DialogTitle className="text-2xl text-[#85b90a]">
             Book This Studio
           </DialogTitle>
 
@@ -304,7 +307,7 @@ const BookStudioButton = ({ studio }: BookStudioButtonProps) => {
           {/* Confirm booking */}
           <Button
             type="submit"
-            className="w-full"
+            className="w-full cursor-pointer bg-[#C5F45B] text-black hover:bg-white hover:border border-[#C5F45B]"
             disabled={loading}
           >
             {loading

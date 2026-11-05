@@ -9,8 +9,8 @@ export default function Home() {
   return (
     <>
     <Banner></Banner>
-    <FeaturedStudios></FeaturedStudios>
     <BrowseCategories></BrowseCategories>
+    <FeaturedStudios></FeaturedStudios>
     <HowBookingWorks></HowBookingWorks>
     <HostGuarantee></HostGuarantee>
     </>

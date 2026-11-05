@@ -14,7 +14,7 @@ interface Studio {
 
 async function getStudios(category: string): Promise<Studio[]> {
   try {
-    const response = await fetch(`${process.env.API_URL}/studio?category=${category}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/studio?category=${category}`, {
       cache: "no-store",
     });
 

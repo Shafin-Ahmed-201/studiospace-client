@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import { redirect, notFound } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import EditStudioClient from "../EditStudioClient";
-
 
 interface PageProps {
   params: Promise<{
@@ -9,16 +11,30 @@ interface PageProps {
   }>;
 }
 
-// Both params and fetch are accessed inside Suspense.
 async function StudioContent({ params }: PageProps) {
   const { studioId } = await params;
 
+  const jwtToken = await auth.api.getToken({
+    headers: await headers(),
+  });
+
+  if (!jwtToken?.token) {
+    redirect("/sign-in");
+  }
+
   const response = await fetch(
-    `http://localhost:5000/studios/${studioId}`,
+    `${process.env.NEXT_PUBLIC_API_URL}/studios/${studioId}`,
     {
       cache: "no-store",
+      headers: {
+        Authorization: `Bearer ${jwtToken.token}`,
+      },
     }
   );
+
+  if (response.status === 404) {
+    notFound();
+  }
 
   if (!response.ok) {
     throw new Error("Failed to fetch studio information.");
@@ -27,7 +43,12 @@ async function StudioContent({ params }: PageProps) {
   const result = await response.json();
   const studio = result.studio ?? result;
 
-  return <EditStudioClient studio={studio} />;
+  return (
+    <EditStudioClient
+      studio={studio}
+      token={jwtToken.token}
+    />
+  );
 }
 
 export default function EditStudioPage({ params }: PageProps) {

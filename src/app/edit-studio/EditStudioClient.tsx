@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import StudioForm, { StudioFormData } from "./StudioForm";
 
-
 interface Studio {
   _id: string;
   title: string;
@@ -23,10 +22,12 @@ interface Studio {
 
 interface EditStudioClientProps {
   studio: Studio;
+  token: string;
 }
 
 const EditStudioClient = ({
   studio,
+  token,
 }: EditStudioClientProps) => {
   const router = useRouter();
 
@@ -35,11 +36,12 @@ const EditStudioClient = ({
     amenities: string[]
   ) => {
     const response = await fetch(
-      `http://localhost:5000/studios/${studio._id}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/studios/${studio._id}`,
       {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...formData,

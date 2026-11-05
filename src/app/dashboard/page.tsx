@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   CalendarDays,
-  CalendarCheck,
   Clock,
   Store,
   Wallet,
@@ -58,14 +57,27 @@ async function DashboardContent() {
   const email = session.user.email;
 
   // Fetch the user's bookings and studio listings
+   const jwtToken= await auth.api.getToken({
+        headers:await headers()
+      })
   const [bookingResponse, studioResponse] = await Promise.all([
     fetch(
-      `http://localhost:5000/my-bookings/${encodeURIComponent(email)}`,
-      { cache: "no-store" }
+      `${process.env.NEXT_PUBLIC_API_URL}/my-bookings/${encodeURIComponent(email)}`,
+      {
+      cache: "no-store",
+      headers: {
+        authorization: `Bearer ${jwtToken?.token}`,
+      },
+    }
     ),
     fetch(
-      `http://localhost:5000/my-listings/${encodeURIComponent(email ?? "")}`,
-      { cache: "no-store" }
+      `${process.env.NEXT_PUBLIC_API_URL}/my-listings/${encodeURIComponent(email ?? "")}`,
+      {
+      cache: "no-store",
+      headers: {
+        authorization: `Bearer ${jwtToken?.token}`,
+      },
+    }
     ),
   ]);
 

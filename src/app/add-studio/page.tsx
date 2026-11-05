@@ -99,7 +99,7 @@ const {data:session}=useSession()
     setLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/studios`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/studios`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
