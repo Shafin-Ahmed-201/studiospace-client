@@ -3,11 +3,12 @@ import { MongoClient } from "mongodb";
 import { mongodbAdapter } from "@better-auth/mongo-adapter";
 import { jwt } from "better-auth/plugins";
 
+
+
 const mongoUrl = process.env.MONGODB_URL;
 if (!mongoUrl) {
-  throw new Error("MONGO_URL environment variable is required");
+  throw new Error("MONGODB_URL is not set");
 }
-
 const client = new MongoClient(mongoUrl);
 const db = client.db('studiospaceDB');
 
